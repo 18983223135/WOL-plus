@@ -11,6 +11,31 @@
 
 set -e
 
+# 接收上一步 YAML 文件中传入的目标架构参数
+TARGET=${TARGET:-ramips/mt7621}  # 默认值设为你的架构
+
+# 根据 TARGET 选择对应的 SDK 下载链接
+case "$TARGET" in
+  ramips/mt7621)
+    # 👇 这是为你设备配置的正确 SDK 下载链接
+    SDK_URL="https://mirror.nju.edu.cn/immortalwrt/releases/24.10.0/targets/ramips/mt7621/immortalwrt-sdk-24.10.0-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+    SDK_NAME="openwrt-sdk-24.10.0-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64"
+    ;;
+  *)
+    echo "Unsupported target: $TARGET"
+    exit 1
+    ;;
+esac
+
+# ... 后续是下载和解压 SDK 的代码，原脚本中如果已有就保留 ...
+
+# 将你的插件源码放置到 SDK 的 package 目录下
+# 假设你的插件源码在项目根目录下的 'luci-app-wolplus' 文件夹
+# 你需要将类似下面的命令，放到脚本中合适的位置
+# ⚠️ "你的插件源码这里!" 需要替换为原脚本中编译插件的具体命令
+# 例如：cp -r ../luci-app-wolplus package/
+# 你的插件源码这里!
+
 # ==============================================================================
 # 配置
 # ==============================================================================
