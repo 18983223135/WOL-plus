@@ -17,6 +17,7 @@ on:
       - main
   workflow_dispatch:
 
+
 jobs:
   build-ipk:
     runs-on: ubuntu-latest
@@ -24,7 +25,9 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - ramips/mt7621   # 新增你需要的架构
+          - ramips/mt7621
+          # 以后如果还想加其他架构，直接在这里加，比如 x86_64
+          # - x86_64
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -52,23 +55,16 @@ jobs:
           chmod +x build-ipk.sh
           TARGET="${{ matrix.target }}" VERSION="${{ steps.get_version.outputs.version }}" ./build-ipk.sh
 
+      - name: Prepare artifact name
+        id: prepare
+        run: |
+          SAFE_NAME="luci-app-wolp-ipk-$(echo '${{ matrix.target }}' | tr '/' '-')"
+          echo "safe_name=$SAFE_NAME" >> $GITHUB_OUTPUT
+
       - name: Upload IPK artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: luci-app-wolp-ipk-${{ matrix.target }}
+          name: ${{ steps.prepare.outputs.safe_name }}
           path: release/*.ipk
           if-no-files-found: error
           retention-days: 30
-
-      # 下面的 Release 步骤只在 tag 时创建，保持原样即可
-      - name: Create Release (on tag)
-        if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: release/*.ipk
-          overwrite_files: true
-          fail_on_unmatched_files: true
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
