@@ -24,8 +24,6 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - x86_64
-          - aarch64_generic
           - ramips/mt7621   # 新增你需要的架构
     steps:
       - name: Checkout code
