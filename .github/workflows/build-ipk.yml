@@ -20,7 +20,13 @@ on:
 jobs:
   build-ipk:
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64
+          - aarch64_generic
+          - ramips/mt7621   # 新增你需要的架构
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -31,15 +37,10 @@ jobs:
         id: get_version
         run: |
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            # 从 tag 中提取版本号 (如 v0.0.5 -> 0.0.5)
             VERSION=$(echo "${{ github.ref }}" | sed 's|refs/tags/v||')
             echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "Building from tag: v$VERSION"
           else
-            # 非tag构建，使用默认版本号
-            VERSION="dev"
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "Building from branch: ${{ github.ref_name }}"
+            echo "version=dev" >> $GITHUB_OUTPUT
           fi
 
       - name: Install dependencies
@@ -51,16 +52,17 @@ jobs:
         run: |
           cd openwrt
           chmod +x build-ipk.sh
-          VERSION="${{ steps.get_version.outputs.version }}" ./build-ipk.sh
+          TARGET="${{ matrix.target }}" VERSION="${{ steps.get_version.outputs.version }}" ./build-ipk.sh
 
       - name: Upload IPK artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: luci-app-wolp-ipk
+          name: luci-app-wolp-ipk-${{ matrix.target }}
           path: release/*.ipk
           if-no-files-found: error
           retention-days: 30
 
+      # 下面的 Release 步骤只在 tag 时创建，保持原样即可
       - name: Create Release (on tag)
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
